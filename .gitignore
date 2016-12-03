@@ -17,4 +17,5 @@ cur/
 tmp/
 __pycache__/
 *.DS_Store
+distutils_ui.e4p
 dist/
