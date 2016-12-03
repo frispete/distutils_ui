@@ -90,7 +90,7 @@ and the included resources are available in all modules.
 
 **distutils_ui** contains a built-in command ``genqrc``, that generates ``.qrc``
 files from globbing patterns. ``genqrc`` supports two specific options: ``prefix``
- and ``strip``. Prefix allows to place all resources under a custom prefix, while
+and ``strip``. Prefix allows to place all resources under a custom prefix, while
 strip removes the path from objects. Strip requires, that all files are uniquely
 named, otherwise some objects are not accessible. The command ``pyrcc``
 generates the resource module ``project_rc.py`` from ``project.qrc``.

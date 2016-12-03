@@ -5,19 +5,17 @@ from setuptools import setup
 
 from distutils_ui import __version__ as version
 
-pkgname = 'distutils_ui'
-
 with open('README.rst', 'r') as fd:
     long_description = fd.read()
 
 setup(
-    name = pkgname,
+    name = 'distutils_ui',
     version = version,
     description = 'A distutils build extension for PyQt{4,5} applications',
     long_description = long_description,
     author = 'Hans-Peter Jansen',
     author_email = 'hpj@urpla.net',
-    url = 'https://github.com/frispete/%s' % pkgname,
+    url = 'https://github.com/frispete/distutils_ui',
     license = 'MIT',
     keywords = 'distutils setuptools generate translate build resources',
     packages = ['distutils_ui'],
