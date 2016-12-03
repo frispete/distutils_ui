@@ -17,5 +17,6 @@ cur/
 tmp/
 __pycache__/
 *.DS_Store
+distutils_ui.egg-info/
 distutils_ui.e4p
 dist/
