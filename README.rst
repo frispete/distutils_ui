@@ -67,7 +67,7 @@ toplevel modules with::
 
 Typically, this form is subclassed with multiple inheritance::
 
-    class Form(QWidget, Ui_Form)::
+    class Form(QWidget, Ui_Form):
         def __init__(self, parent = None):
             super(Form, self).__init__(parent)
             self.setupUi(self)
@@ -75,7 +75,7 @@ Typically, this form is subclassed with multiple inheritance::
 
 Resources
 ---------
-Resource collection files ``.qrc`` defines resources, that are included within
+Resource collection files (``.qrc``) defines resources, that are included within
 a single module. Typically, this includes images, translation files (``.qm``),
 and other static data. These resources are accessed with::
 
@@ -86,10 +86,11 @@ main module::
 
     import project_rc # __IGNORE_WARNING__ (this is not referenced any further)
 
-and the included resources are available in all modules. **distutils_ui**
-contains a built-in command ``genqrc``, that generates ``.qrc`` files from
-globbing patterns. ``genqrc`` supports two specific options: ``prefix`` and
-``strip``. Prefix allows to place all resources under a custom prefix, while
+and the included resources are available in all modules.
+
+**distutils_ui** contains a built-in command ``genqrc``, that generates ``.qrc``
+files from globbing patterns. ``genqrc`` supports two specific options: ``prefix``
+ and ``strip``. Prefix allows to place all resources under a custom prefix, while
 strip removes the path from objects. Strip requires, that all files are uniquely
 named, otherwise some objects are not accessible. The command ``pyrcc``
 generates the resource module ``project_rc.py`` from ``project.qrc``.
@@ -108,7 +109,8 @@ metadata parameter, like ``{name}`` and ``{version}``. These parameters can
 be mixed with file globbing patterns.
 
 ``infiles`` and ``outfiles`` parameter define input files and targets.
-A optional ``exclude`` parameter removes matching elements from ``infiles``.
+
+An ``exclude`` parameter removes matching elements from ``infiles``.
 
 The ``chdir`` parameter allow to change the execution path of that command,
 also subject to metadata macro expansion.
