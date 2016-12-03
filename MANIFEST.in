@@ -1,0 +1,4 @@
+include *.rst *.txt
+recursive-include example setup.cfg* *.py
+recursive-include example/example *.py *.png *.ts *.ui
+exclude .gitignore

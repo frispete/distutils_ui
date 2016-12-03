@@ -1,227 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Distutils/Setuptools build extension for PyQt{4,5} applications
+A distutils build extension for PyQt{4,5} applications
 
-Build UI specific elements in tree, controlled by config vars in setup.cfg.
-Running the tool chain is delegated to a couple of internal build commands.
-
-Following layout is assumed:
-
-project/
-    i18n/               # keep translation specific files here
-    i18n/project.pro    # translation project file (generated)
-    ui/                 # all forms, might be organised with subfolders
-    project.qrc         # project resource definition (generated)
-    project_rc.py       # project resources (generated)
-
-i18n/ contains all files related to internationalisation
-
-    Proper translation is subject of fetching the translatable strings from
-    all forms and source modules, translate them (with linguist), and convert
-    the textual representation (.ts) into binary form (.qm), palatable for
-    QTranslator instances.
-
-    There are two ways to accomplish this task: using an intermediate project
-    file (.pro), that can be generated with "gentrpro", or feeding files args
-    to the other tools directly. Unfortunately, the latter way is hampered by
-    some bugs. Hence, the preferred way is using the .pro file, generated with
-    "gentrpro".
-
-    Since the translation source files (.ts) references the forms and sources
-    with relative paths, and the tools pylupdate and lrelease operate relative
-    to the .pro file location, and _we_ want to keep all translation specific
-    files in one place, we run the translation tool chain relative to i18n/.
-
-    A new language is introduced by creating an appropriately named file in
-    i18n (e.g. with touch), updating it with "setup.py build_ui", and setting
-    up the language parameter with linguist once. Translation relies on tr()
-    and translate() used properly, as usual.
-
-ui/ contains all designer forms
-
-    The <forms>.ui are translated to ui_<forms>.py. Usually, they contain a
-    single form, where the toplevel object is the camel cased name of the
-    module. E.g.: form.ui contains a widget Form, that is imported from main
-    project modules with:
-
-        from ui.ui_form import Ui_Form
-
-    Typically, this form is subclassed with multiple inheritance:
-
-        class Form(QWidget, Ui_Form)::
-            def __init__(self, parent = None):
-                super().__init__(parent)
-                self.setupUi(self)
-
-Resources
-
-    project.qrc defines resources, that are included within a single file
-    project_rc.py. Typically, this includes images, translation files (.qm), and
-    other static data. These resources are accessed with:
-
-        app.setWindowIcon(QIcon(":/images/icon.png"))
-
-    Note the ":" prefix. The resource file is typically included early in the
-    main module:
-
-        import project_rc # __IGNORE_WARNING__ (this is not referenced any further)
-
-    and the resources are available in all modules from there on.
-
-    Generating the resource definition with "genqrc" allows further adjustments
-    with two specific options: prefix and strip. Prefix allows to place all
-    resources under a custom prefix, while strip removes the path from objects.
-    Strip requires, that all files are uniquely named, otherwise some objects
-    are not accessible.
-
-Commands
-
-    The "gentrpro" and "genqrc" commands are built-in, therefore they doesn't
-    define their own command, rather than process input and output files
-    directly. All other commands call external tools, that must be available
-    and specified with a command parameter in setup.cfg.
-
-    Command parameter use {macro} expressions, that references other parameters
-    in the same section, such as {infiles} and {outfiles}, as well as metadata
-    parameter, like {name} and {version}. These parameters can be mixed with
-    file globbing patterns.
-
-    The "chdir" parameter changes the execution path of that command, also
-    subject to metadata macro expansion.
-
-    A special command mode is provided: "singlefile". It is used to call the
-    command one by one for every input file. In this mode, additional macros
-    are available, that can be used to further control the output file: {path},
-    {filename}, and {fileext}. Check template for "pyuic" and "pyrcc" for
-    examples.
-
-    If you only want to work with a subset of available commands: just define
-    "commands" in [build_ui] accordingly.
-
-
-setup.py:
-
-from distutils.command.build import build
-from build_ui import build_ui
-
-[...]
-
-cmdclass = {
-    'build_ui': build_ui,
-}
-
-# Optional: inject ui specific build into standard build process
-build.sub_commands.insert(0, ('build_ui', None))
-
-setup(
-    name = name,
-    version = version,
-    [...]
-    cmdclass = cmdclass
-)
-
-
-setup.cfg of build_ui template:
-
-[build_ui]
-# control the tool chain (default: run all commands)
-#commands = gentrpro, pylupdate, lrelease, pyuic, genqrc, pyrcc
-
-[gentrpro]
-# pro files are processed relative to their location, cope with it:
-# generate pro file with relative paths from i18n, and call
-# pylupdate and lrelease from within i18n
-chdir = {name}/i18n
-infiles = ../ui/*.ui ../*.py *.ts
-outfiles = {name}.pro
-
-[pylupdate]
-# update translation source files (*.ts) from forms and source files
-# -noobsolete will remove all outdated translations
-chdir = {name}/i18n
-command = pylupdate5 -verbose {infiles}
-infiles = {name}.pro
-outfiles = *.ts
-
-[lrelease]
-# convert translation source files into binary representation (*.qm)
-chdir = {name}/i18n
-command = lrelease-qt5 {infiles}
-infiles = {name}.pro
-outfiles = *.qm
-
-[pyuic]
-# generate python source files from UI definitions (*.ui)
-command = pyuic5 -x -o {outfiles} {infiles}
-infiles = {name}/ui/*.ui
-outfiles = {name}/ui/ui_{filename}.py
-singlefile = true
-
-[genqrc]
-# generate a resource description file (*.qrc)
-chdir = {name}
-infiles = images/*.png i18n/*.qm ../README.rst
-outfiles = {name}.qrc
-# these are specific for genqrc
-strip = false
-prefix =
-
-[pyrcc]
-# generate a resource module from qrc file
-command = pyrcc5 -o {outfiles} {infiles}
-infiles = {name}/{name}.qrc
-outfiles = {name}/{name}_rc.py
-singlefile = true
-
-
-The plain UI build is triggered with:
-
-    python3 setup.py build_ui [-f|--force]
-
-A cleanup of the generated files can be done in a similar fashion:
-
-    python3 setup.py build_ui [-C|--clean]
-
-Notes:
-
-    avoid spaces in filenames
-
-Debug:
-
-    python3 setup.py -v build_ui
-
-Author:
-
-    (c) 2016 Hans-Peter Jansen <hpj@urpla.net>
-
-License:
-
-    BSD 2-Clause
-
-    Copyright (c) 2016, Hans-Peter Jansen, All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-
-    1. Redistributions of source code must retain the above copyright notice,
-       this list of conditions and the following disclaimer.
-
-    2. Redistributions in binary form must reproduce the above copyright notice,
-       this list of conditions and the following disclaimer in the documentation
-       and/or other materials provided with the distribution.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-    POSSIBILITY OF SUCH DAMAGE.
-
+vim:set et ts=4 sw=4:
 """
 import os
 import sys
@@ -232,7 +13,7 @@ import subprocess
 from xml.etree import ElementTree
 from collections import OrderedDict
 
-from distutils.cmd import Command
+from setuptools import Command
 from distutils.util import strtobool
 from distutils import log
 
@@ -243,7 +24,6 @@ def strsplit(msg, splitter = ' '):
 strlist = lambda list, joiner = ' ': joiner.join(list)
 
 ftime = lambda t: datetime.datetime.fromtimestamp(t).isoformat(' ')
-
 
 
 def indentXML(elem, level = 0):
@@ -264,7 +44,7 @@ def indentXML(elem, level = 0):
 class build_tool(Command):
     """base class for all internal commands"""
     description = 'generic build tool class'
-    # we inherit the force flag from build_ui
+    # we inherit the force and clean flags from build_ui
     user_options = []
 
     def initialize_options(self):
@@ -535,12 +315,13 @@ class gentrpro(build_tool):
 
 class genqrc(build_tool):
     def initialize_options(self):
-        super().initialize_options()
+        # Note: Command is not a new-style class!
+        build_tool.initialize_options(self)
         self.prefix = None
         self.strip = None
 
     def finalize_options(self):
-        super().finalize_options()
+        build_tool.finalize_options(self)
         if self.strip is not None:
             self.strip = strtobool(self.strip)
 
@@ -603,8 +384,8 @@ class build_ui(Command):
     description = 'call the various PyQt specific build tools'
     user_options = [
         ('force', 'f', 'forcibly build everything (ignore file timestamps)'),
-        ('commands=', 'c', 'comma separated list of commands to execute'),
         ('clean', 'C', 'remove generated files'),
+        ('commands=', 'c', 'comma separated list of commands to execute'),
     ]
     all_commands = ['gentrpro', 'pylupdate', 'lrelease', 'pyuic', 'genqrc', 'pyrcc']
 
