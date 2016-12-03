@@ -41,11 +41,11 @@ files in one place, we run the translation tool chain relative to ``i18n/``.
 
 A new language
 ~~~~~~~~~~~~~~
-    * create an appropriately named file in ``i18n/``
-        e.g. ``touch i18n/project_lang.ts``
-    * build initial translation source with ``setup.py build_ui``
-    * set up language parameter with linguist once
-        e.g. ``linguist i18n/project_lang.ts``
+* create an appropriately named file in ``i18n/``
+  e.g. ``touch i18n/project_lang.ts``
+* build initial translation source with ``setup.py build_ui``
+* set up language parameter with linguist once
+  e.g. ``linguist i18n/project_lang.ts``
 
 Translation relies on tr() and translate() used properly in the source.
 
@@ -214,8 +214,8 @@ A cleanup of the generated files can be done in a similar fashion::
 
 Notes:
 
-    * avoid spaces in filenames
-    * '.pro' file approach results in spurious builds
+* avoid spaces in filenames
+* '.pro' file approach results in spurious builds
 
 Debug::
 
