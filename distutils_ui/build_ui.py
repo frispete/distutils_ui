@@ -66,6 +66,7 @@ class build_tool(Command):
             self.singlefile = strtobool(self.singlefile)
         # inherit these from build_ui
         self.force = self.parent.force
+        self.noobsolete = self.parent.noobsolete
         self.clean = self.parent.clean
         # build vars dict from metadata
         for attr in ('name', 'version'):
@@ -369,6 +370,16 @@ class pylupdate(build_tool):
     def cleanup(self, files):
         pass
 
+    # add -noobsolete switch
+    def finalize_options(self):
+        build_tool.finalize_options(self)
+        if self.noobsolete is not None:
+            cmd = strsplit(self.command)
+            cmd.insert(1, '-noobsolete')
+            self.command = strlist(cmd)
+        self.info('command: %s', self.command)
+
+
 class lrelease(build_tool):
     pass
 
@@ -384,6 +395,7 @@ class build_ui(Command):
     description = 'call the various PyQt specific build tools'
     user_options = [
         ('force', 'f', 'forcibly build everything (ignore file timestamps)'),
+        ('noobsolete', 'n', 'drop all obsolete translation strings'),
         ('clean', 'C', 'remove generated files'),
         ('commands=', 'c', 'comma separated list of commands to execute'),
     ]
@@ -392,6 +404,7 @@ class build_ui(Command):
     def initialize_options(self):
         log.debug('%s.initialize_options', self.__class__.__name__)
         self.force = None
+        self.noobsolete = None
         self.commands = None
         self.clean = None
 
