@@ -78,7 +78,7 @@ class build_tool(Command):
         self.chdir = self.parse_arg('chdir', self.chdir or '')
         # subprocess environment: run tools in posix locale
         self.env = dict(os.environ)
-        self.env['LANG'] = b'C'
+        self.env['LANG'] = 'C'
 
     def run(self):
         self.debug('%s.run', self.__class__.__name__)
