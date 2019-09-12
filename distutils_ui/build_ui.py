@@ -182,17 +182,17 @@ class build_tool(Command):
         try:
             ret = subprocess.call(command.split(' '), env = self.env)
         except OSError as e:
-            self.error('run_command: %s', e)
+            self.fatal('run_command: %s', e)
         else:
             if ret != 0:
-                self.error('run_command "%s" returned: %d', command, ret)
+                self.fatal('run_command "%s" returned: %d', command, ret)
 
     def makedirs(self, path):
         if path and not os.path.exists(path):
             try:
                 os.makedirs(path)
             except OSError as e:
-                self.error('makedirs failed: %s', e)
+                self.fatal('makedirs failed: %s', e)
 
     def cleanup(self, files):
         for file in files:
@@ -224,7 +224,7 @@ class build_tool(Command):
         try:
             arg = arg.format(**vars)
         except KeyError as e:
-            self.error('%s: %s', command, e)
+            self.fatal('%s: %s', command, e)
         else:
             self.debug('parse_arg: %s: "%s"', command, arg)
             return arg
@@ -271,7 +271,8 @@ class build_tool(Command):
 
     def fatal(self, msg, *args):
         log.error(self.__class__.__name__ + '.' + msg, *args)
-        sys.exit(1)
+        if not self.force:
+            sys.exit(1)
 
 
 class gentrpro(build_tool):
@@ -394,7 +395,7 @@ class build_ui(Command):
     """top level command class, that just calls the internal commands"""
     description = 'call the various PyQt specific build tools'
     user_options = [
-        ('force', 'f', 'forcibly build everything (ignore file timestamps)'),
+        ('force', 'f', 'forcibly build everything (ignore file timestamps and errors)'),
         ('noobsolete', 'n', 'drop all obsolete translation strings'),
         ('clean', 'C', 'remove generated files'),
         ('commands=', 'c', 'comma separated list of commands to execute'),
